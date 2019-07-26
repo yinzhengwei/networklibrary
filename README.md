@@ -1,5 +1,5 @@
 # networklibrary
-Android网络请求框架的封装
+Android网络请求框架的封装，使用方式请阅读以下文档。关于框架的混淆已在 ‘proguard-rules.pro’中完成。
 
 # 配置方式
 
