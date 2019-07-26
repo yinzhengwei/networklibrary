@@ -10,6 +10,7 @@
 
 # 2、定义interface接口声明类：
 
+      //关于更多api的定义方式请参考源码中文档‘接口类的api定义方式.txt’
       例： public interface IAccountFunctionApi {
    
             /**
