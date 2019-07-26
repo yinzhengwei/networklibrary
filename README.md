@@ -2,13 +2,13 @@
 
 
 
-# 1、在自定义的application中初始化OkHttpManager:
+1、在自定义的application中初始化OkHttpManager:
 
       例：   OkHttpManager.init(baseUrl,timeout,cashDir,headerMap)
          或  OkHttpManager.init(baseUrl,timeout,cashDir,headerMap,x509TrustManager)
 
 
-# 2、定义interface接口声明类：
+2、定义interface接口声明类：
 
       //关于更多api的定义方式请参考源码中文档‘接口类的api定义方式.txt’
       例： public interface IAccountFunctionApi {
@@ -25,13 +25,13 @@
         }
 
 
-# 3、获取接口声明类的实例：
+3、获取接口声明类的实例：
 
       例： val mIAccountFunctionApi = OkHttpManager.loadApi(IAccountFunctionApi::class.java)
 
 
 
-# 4、发送请求：
+4、发送请求：
 
       例：OkHttpManager.sendRequest(mIAccountFunctionApi.getVerifyPhoneNumber(text),{
           Log.d(it.data)
