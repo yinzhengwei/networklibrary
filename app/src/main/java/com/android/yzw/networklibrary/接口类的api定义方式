@@ -1,0 +1,46 @@
+
+#关于Retrofit注解的使用详见：https://blog.csdn.net/guohaosir/article/details/78942485
+
+
+常用的有以下几种：
+public interface ICustomApi {
+
+    1、post方式请求，有普通参数的场景
+        @FormUrlEncoded
+        @POST("v1/isExistedPhone")
+        Observable<PhoneExisted> getPhoneNumber(@Field("phone") String phoneNumber);
+
+    2、post方式请求，无参数的场景
+        @POST("v1/isExistedPhone")
+        Observable<PhoneExisted> getPhoneNumber();
+
+    3、post方式请求，有非基础类型的参数(例：对象、json、file等)的场景
+        @POST("v1/isExistedPhone")
+        Observable<PhoneExisted> getPhoneNumber(@Body bean: CommonBean，@Body body: RequestBody);
+
+    4、post方式请求，有集合类型的参数(例：list、map等)的场景
+        @Multipart
+        @POST("v1/isExistedPhone")
+        Observable<PhoneExisted> getPhoneNumber(@Part() List<MultipartBody.Part> parts);
+
+
+
+    5、get方式请求，有普通参数的场景
+        @FormUrlEncoded
+        @GET("v1/isExistedPhone")
+        Observable<PhoneExisted> getPhoneNumber(@Query("phone") String phoneNumber);
+
+    6、get方式请求，无参数的场景
+        @GET("v1/isExistedPhone")
+        Observable<PhoneExisted> getPhoneNumber();
+
+    7、get方式请求，有非基础类型的参数(例：对象、json、file等)的场景
+        @GET("v1/isExistedPhone")
+        Observable<PhoneExisted> getPhoneNumber(@Body bean: CommonBean，@Body body: RequestBody);
+
+    8、get方式请求，有集合类型的参数(例：list、map等)的场景
+        @Multipart
+        @GET("v1/isExistedPhone")
+        Observable<PhoneExisted> getPhoneNumber(@Part() List<MultipartBody.Part> parts);
+
+}
