@@ -1,5 +1,5 @@
 # networklibrary
-Android动态权限检测和申请管理
+Android网络请求框架的封装
 
 # 配置方式
 
