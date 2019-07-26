@@ -8,6 +8,7 @@
 
 
 2、定义interface接口声明类：
+
    例： public interface IAccountFunctionApi {
             /**
              * 检验手机号是否非法
@@ -21,11 +22,13 @@
 
 
 3、获取接口声明类的实例：
+
    例： val mIAccountFunctionApi = OkHttpManager.loadApi(IAccountFunctionApi::class.java)
 
 
 
 4、发送请求：
+
    例：OkHttpManager.sendRequest(mIAccountFunctionApi.getVerifyPhoneNumber(text),{
           Log.d(it.data)
        },{
