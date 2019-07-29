@@ -14,11 +14,11 @@ public interface ICustomApi {
         @POST("v1/isExistedPhone")
         Observable<PhoneExisted> getPhoneNumber();
 
-    3、post方式请求，有非基础类型的参数(例：对象、json、file等)的场景
+    3、post方式请求，有非基础类型的参数(例：对象、json等)的场景
         @POST("v1/isExistedPhone")
         Observable<PhoneExisted> getPhoneNumber(@Body bean: CommonBean，@Body body: RequestBody);
 
-    4、post方式请求，有集合类型的参数(例：list、map等)的场景
+    4、post方式请求，有集合类型的参数(例：list、map、file等)的场景
         @Multipart
         @POST("v1/isExistedPhone")
         Observable<PhoneExisted> getPhoneNumber(@Part() List<MultipartBody.Part> parts);
@@ -28,17 +28,13 @@ public interface ICustomApi {
     5、get方式请求，有普通参数的场景
         @FormUrlEncoded
         @GET("v1/isExistedPhone")
-        Observable<PhoneExisted> getPhoneNumber(@Query("phone") String phoneNumber);
+        Observable<PhoneExisted> getPhoneNumber(@Query("phone") String phoneNumber，@QueryMap HashMap<String,String> info);
 
     6、get方式请求，无参数的场景
         @GET("v1/isExistedPhone")
         Observable<PhoneExisted> getPhoneNumber();
 
-    7、get方式请求，有非基础类型的参数(例：对象、json、file等)的场景
-        @GET("v1/isExistedPhone")
-        Observable<PhoneExisted> getPhoneNumber(@Body bean: CommonBean，@Body body: RequestBody);
-
-    8、get方式请求，有集合类型的参数(例：list、map等)的场景
+    7、get方式请求，有集合类型的参数(例：list、map、file等)的场景
         @Multipart
         @GET("v1/isExistedPhone")
         Observable<PhoneExisted> getPhoneNumber(@Part() List<MultipartBody.Part> parts);
