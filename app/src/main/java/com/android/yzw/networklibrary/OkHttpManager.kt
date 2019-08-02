@@ -13,6 +13,7 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
+import java.nio.charset.Charset
 import java.security.KeyManagementException
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
@@ -77,29 +78,27 @@ object OkHttpManager {
                 builder!!.cache(Cache(File(cashDir, "HttpCache"), (1024 * 1024 * 100).toLong()))
             }
             builder!!.retryOnConnectionFailure(true)
-                    .addInterceptor(mCommonParamsProcessInterceptor)
-                    .addInterceptor(sReplaceUrlInterceptor)
-                    .addInterceptor(sLoggingInterceptor)
-                    .connectTimeout(timeoutTimed, TimeUnit.SECONDS)
-                    .readTimeout(timeoutTimed, TimeUnit.SECONDS)
-                    .writeTimeout(timeoutTimed, TimeUnit.SECONDS)
+                .addInterceptor(mHeaderInterceptor)
+                .addInterceptor(sReplaceUrlInterceptor)
+                .connectTimeout(timeoutTimed, TimeUnit.SECONDS)
+                .readTimeout(timeoutTimed, TimeUnit.SECONDS)
+                .writeTimeout(timeoutTimed, TimeUnit.SECONDS)
 
             if (BuildConfig.DEBUG) {
                 //测试地址 打印log
                 builder!!.addInterceptor(sLoggingInterceptor)
-            } else {
-                //添加证书
-                if (x509TrustManager != null)
-                    builder!!.sslSocketFactory(sSLSocketFactory(), x509TrustManager!!)
             }
+            //添加证书
+            if (x509TrustManager != null)
+                builder!!.sslSocketFactory(sSLSocketFactory(), x509TrustManager!!)
         }
         if (retrofit == null)
             retrofit = Retrofit.Builder()
-                    .addConverterFactory(GsonConverterFactory.create(Gson()))
-                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                    .client(builder!!.build())
-                    .baseUrl(baseUrl)
-                    .build()
+                .addConverterFactory(GsonConverterFactory.create(Gson()))
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .client(builder!!.build())
+                .baseUrl(baseUrl)
+                .build()
 
         return retrofit!!.create(clazz)
     }
@@ -143,14 +142,12 @@ object OkHttpManager {
      * 请求包装、缓存处理
      * 添加请求Header或cache
      */
-    private val mCommonParamsProcessInterceptor = Interceptor { chain ->
+    private val mHeaderInterceptor = Interceptor { chain ->
         val requestBuilder = chain.request().newBuilder()
         if (headerMap.size >= 0) {
             //请求定制(添加请求头)
             headerMap.forEach {
-                requestBuilder.apply {
-                    addHeader(it.key, it.value)
-                }
+                requestBuilder.addHeader(it.key, it.value)
             }
         }
         chain.proceed(requestBuilder.build())
@@ -160,17 +157,23 @@ object OkHttpManager {
      * 打印返回的json数据拦截器
      */
     private val sLoggingInterceptor = Interceptor { chain ->
+        //打印返回的json数据
         val request = chain.request()
-        val response = chain.proceed(request)
-        val bodyString = response.body()?.string() ?: ""
-
-        // 解决响应时崩溃无log问题
-        val sbRequest = StringBuffer()
-        bodyToString(request, sbRequest)
-
-        Log.d("OkHttp", "\n请求地址:${request?.url()?.toString()}\n请求方式:${request.method()}\n\n$sbRequest\n返回参数:\n$bodyString\n")
-
-        response.newBuilder().body(ResponseBody.create(response.body()!!.contentType(), bodyString)).build()
+        val requestPath = request?.url()?.toString() ?: ""
+        val requestMethod = request.method()
+        val params = StringBuffer()
+        bodyToString(request, params)
+        var result = ""
+        try {
+            val response = chain.proceed(chain.request())
+            //打印返回的json数据拦截器
+            val source = response.body()?.source()!!.apply { request(Long.MAX_VALUE) }
+            result = source.buffer()!!.readString(Charset.forName("UTF-8"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        Log.d("OkHttp", "\n请求地址:$requestPath\n请求方式:$requestMethod\n\n$params\n返回参数:\n$result\n")
+        chain.proceed(chain.request())
     }
 
     /**
@@ -183,8 +186,7 @@ object OkHttpManager {
                 this.url(HttpUrl.parse(mSecondBaseUrl)!!)
             }
         }
-        val request = requestBuilder.build()
-        chain.proceed(request)
+        chain.proceed(requestBuilder.build())
     }
 
     private fun bodyToString(request: Request, sb: StringBuffer): String {
