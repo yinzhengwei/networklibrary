@@ -9,6 +9,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import okhttp3.*
+import okio.Buffer
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
@@ -32,7 +33,7 @@ object OkHttpManager {
     private var builder: OkHttpClient.Builder? = null
     private var x509TrustManager: X509TrustManager? = null
     private var retrofit: Retrofit? = null
-    private var headerMap = mutableMapOf<String, String>()
+    var headerMap = mutableMapOf<String, String>()
 
     private var baseUrl = ""
     private var mSecondBaseUrl = ""
@@ -53,8 +54,7 @@ object OkHttpManager {
      * @param headerMap 请求服务的头参数
      * @param x509TrustManager ssl加密证书
      */
-    fun init(baseUrl: String, timeout: Long, cashDir: File, headerMap: HashMap<String, String>, x509TrustManager: X509TrustManager? = null) {
-        setTimeout(timeout)
+    fun init(baseUrl: String, cashDir: File, headerMap: HashMap<String, String>, x509TrustManager: X509TrustManager? = null) {
         OkHttpManager.baseUrl = baseUrl
         OkHttpManager.cashDir = cashDir
         OkHttpManager.headerMap = headerMap
@@ -75,7 +75,7 @@ object OkHttpManager {
             builder = OkHttpClient.Builder()
             // 指定缓存路径,缓存大小100Mb
             if (cashDir != null && cashDir!!.exists()) {
-                builder!!.cache(Cache(File(cashDir, "HttpCache"), (1024 * 1024 * 100).toLong()))
+                builder!!.cache(Cache(File(cashDir, "OkHttpCache"), (1024 * 1024 * 10).toLong()))
             }
             builder!!.retryOnConnectionFailure(true)
                 .addInterceptor(mHeaderInterceptor)
@@ -143,11 +143,26 @@ object OkHttpManager {
      * 添加请求Header或cache
      */
     private val mHeaderInterceptor = Interceptor { chain ->
-        val requestBuilder = chain.request().newBuilder()
-        if (headerMap.size >= 0) {
-            //请求定制(添加请求头)
-            headerMap.forEach {
-                requestBuilder.addHeader(it.key, it.value)
+        //请求定制(添加请求头)
+        val requestBuilder = chain.request().newBuilder().apply {
+            if (headerMap.isNotEmpty()) {
+                //请求定制(添加请求头)
+                headerMap.forEach {
+                    addHeader(it.key, it.value)
+                }
+            }
+        }
+        chain.proceed(requestBuilder.build())
+    }
+
+    /**
+     * 地址替换
+     */
+    private val sReplaceUrlInterceptor = Interceptor { chain ->
+        val original = chain.request()
+        val requestBuilder = original.newBuilder().apply {
+            if (!TextUtils.isEmpty(mSecondBaseUrl)) {
+                this.url(HttpUrl.parse(mSecondBaseUrl)!!)
             }
         }
         chain.proceed(requestBuilder.build())
@@ -163,30 +178,44 @@ object OkHttpManager {
         val requestMethod = request.method()
         val params = StringBuffer()
         bodyToString(request, params)
+
         var result = ""
+        var code = ""
+        var response: Response? = null
+        var tookMs = 0L
         try {
-            val response = chain.proceed(chain.request())
+            var charset = Charset.forName("UTF-8")
+
+            //转码
+            val requestBody = request.body()
+            val buffer = Buffer()
+            requestBody?.writeTo(buffer)
+            buffer.readString(charset)
+            val contentType = requestBody?.contentType()
+            if (contentType != null) {
+                charset = contentType.charset(Charset.forName("UTF-8"))
+            }
+
+            //请求时长
+            val startNs = System.nanoTime()
+            try {
+                response = chain.proceed(request)
+            } catch (e: Exception) {
+                throw e
+            }
+            tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs)
+
+            //返回码
+            if (response.code() != 200)
+                code = "\n异常错误码:${response.code()}\n"
+
             //打印返回的json数据拦截器
-            val source = response.body()?.source()!!.apply { request(Long.MAX_VALUE) }
-            result = source.buffer()!!.readString(Charset.forName("UTF-8"))
+            result = response.body()?.source()!!.apply { request(Long.MAX_VALUE) }.buffer()!!.clone().readString(charset)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        Log.d("OkHttp", "\n请求地址:$requestPath\n请求方式:$requestMethod\n\n$params\n返回参数:\n$result\n")
-        chain.proceed(chain.request())
-    }
-
-    /**
-     * 地址替换
-     */
-    private val sReplaceUrlInterceptor = Interceptor { chain ->
-        val original = chain.request()
-        val requestBuilder = original.newBuilder().apply {
-            if (!TextUtils.isEmpty(mSecondBaseUrl)) {
-                this.url(HttpUrl.parse(mSecondBaseUrl)!!)
-            }
-        }
-        chain.proceed(requestBuilder.build())
+        Log.d("OkHttp", "\n\n请求地址:$requestPath\n请求方式:$requestMethod\n\n$params$code\n返回的出参数据:\n$result\n\n请求时长:\n$tookMs ms")
+        response
     }
 
     private fun bodyToString(request: Request, sb: StringBuffer): String {
@@ -206,7 +235,7 @@ object OkHttpManager {
                         sb.append("无入参数据\n")
                     } else
                         for (index in 0 until body.size()) {
-                            sb.append(body.encodedName(index) + "=" + body.encodedValue(index) + ";\n")
+                            sb.append(body.name(index) + "=" + body.value(index) + ";\n")
                         }
                 } else
                     sb.append("无入参数据\n")

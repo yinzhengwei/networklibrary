@@ -23,7 +23,7 @@ Step 2. Add the dependency
 
 dependencies {
 
-	implementation 'com.github.yinzhengwei:networklibrary:2.0.0'
+	implementation 'com.github.yinzhengwei:networklibrary:2.0.1'
 	
 }
 
@@ -31,8 +31,8 @@ dependencies {
 # 使用方式
 1、在自定义的application中初始化OkHttpManager:
 
-      例：   OkHttpManager.init(baseUrl,timeout,cashDir,headerMap)
-         或  OkHttpManager.init(baseUrl,timeout,cashDir,headerMap,x509TrustManager)
+      例：   OkHttpManager.init(baseUrl,cashDir,headerMap)
+         或  OkHttpManager.init(baseUrl,cashDir,headerMap,x509TrustManager)
 
 
 2、定义interface接口声明类：
