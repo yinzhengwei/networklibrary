@@ -17,6 +17,20 @@ android {
         }
     }
 }
+gradle.startParameter.getTaskNames().each { task ->
+    println("task: " + task)
+    //library里 BuildConfig.DEBUG默认一直是false;所以需要自定义
+    if (task.contains("Debug")) {
+        android {
+            defaultPublishConfig "debug"
+        }
+
+    } else if (task.contains("Release")) {
+        android {
+            defaultPublishConfig "release"
+        }
+    }
+}
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

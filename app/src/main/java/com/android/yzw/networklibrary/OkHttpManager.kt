@@ -54,7 +54,12 @@ object OkHttpManager {
      * @param headerMap 请求服务的头参数
      * @param x509TrustManager ssl加密证书
      */
-    fun init(baseUrl: String, cashDir: File, headerMap: HashMap<String, String>, x509TrustManager: X509TrustManager? = null) {
+    fun init(
+        baseUrl: String,
+        cashDir: File,
+        headerMap: HashMap<String, String>,
+        x509TrustManager: X509TrustManager? = null
+    ) {
         OkHttpManager.baseUrl = baseUrl
         OkHttpManager.cashDir = cashDir
         OkHttpManager.headerMap = headerMap
@@ -113,7 +118,11 @@ object OkHttpManager {
      * @param successful 请求成功的回调
      * @param fail       请求失败的回调
      */
-    fun <T> sendRequest(observer: Observable<T>, successful: (T) -> Unit, fail: (Throwable) -> Unit) {
+    fun <T> sendRequest(
+        observer: Observable<T>,
+        successful: (T) -> Unit,
+        fail: (Throwable) -> Unit
+    ) {
         if (TextUtils.isEmpty(baseUrl)) {
             fail(Throwable("域服务器域名地址为空"))
             return
@@ -133,9 +142,12 @@ object OkHttpManager {
                 fail(e)
             }
         }
-        observer.compose { observable ->
-            observable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-        }.subscribe(value)
+
+        observer.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+            .subscribe(value)
+//        observer.compose { observable ->
+//            observable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+//        }.subscribe(value)
     }
 
     /**
@@ -210,11 +222,16 @@ object OkHttpManager {
                 code = "\n异常错误码:${response.code()}\n"
 
             //打印返回的json数据拦截器
-            result = response.body()?.source()!!.apply { request(Long.MAX_VALUE) }.buffer()!!.clone().readString(charset)
+            result =
+                response.body()?.source()!!.apply { request(Long.MAX_VALUE) }.buffer()!!.clone()
+                    .readString(charset)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        Log.d("OkHttp", "\n\n请求地址:$requestPath\n请求方式:$requestMethod\n\n$params$code\n返回的出参数据:\n$result\n\n请求时长:\n$tookMs ms")
+        Log.d(
+            "OkHttp",
+            "\n\n请求地址:$requestPath\n请求方式:$requestMethod\n\n$params$code\n返回的出参数据:\n$result\n\n请求时长:\n$tookMs ms"
+        )
         response
     }
 
