@@ -23,7 +23,7 @@ Step 2. Add the dependency
 
 dependencies {
 
-	implementation 'com.github.yinzhengwei:networklibrary:3.0.0'
+	implementation 'com.github.yinzhengwei:networklibrary:3.0.1'
 	
 }
 
