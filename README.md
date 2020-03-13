@@ -31,8 +31,8 @@ dependencies {
 # 使用方式
 1、在自定义的application中初始化OkHttpManager:
 
-      例：   OkHttpManager.init(baseUrl,cashDir,headerMap)
-         或  OkHttpManager.init(baseUrl,cashDir,headerMap,x509TrustManager)
+      例：   OkHttpManager.init(BuildConfig.DEBUG,baseUrl,cashDir,headerMap)
+         或  OkHttpManager.init(BuildConfig.DEBUG,baseUrl,cashDir,headerMap,x509TrustManager)
 
 
 2、定义interface接口声明类：
