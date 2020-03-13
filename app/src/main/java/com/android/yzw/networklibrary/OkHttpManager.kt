@@ -184,7 +184,7 @@ object OkHttpManager {
         chain.proceed(requestBuilder.build())
     }
 
-    /**
+     /**
      * 打印返回的json数据拦截器
      */
     private val sLoggingInterceptor = Interceptor { chain ->
@@ -209,7 +209,7 @@ object OkHttpManager {
             buffer.readString(charset)
             val contentType = requestBody?.contentType()
             if (contentType != null) {
-                charset = contentType.charset(Charset.forName("UTF-8"))
+                charset = contentType.charset(charset)
             }
 
             //请求时长
@@ -226,16 +226,12 @@ object OkHttpManager {
                 code = "\n异常错误码:${response.code()}\n"
 
             //打印返回的json数据拦截器
-            result =
-                response.body()?.source()!!.apply { request(Long.MAX_VALUE) }.buffer()!!.clone()
-                    .readString(charset)
+            result = response.body()?.source()!!.apply { request(Long.MAX_VALUE) }.buffer()!!.clone().readString(charset)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        Log.d(
-            "OkHttp",
-            "\n\n请求地址:$requestPath\n请求方式:$requestMethod\n\n$params$code\n返回的出参数据:\n$result\n\n请求时长:\n$tookMs ms"
-        )
+        Log.i("OkHttp", "\n\n请求地址:$requestPath\n请求方式:$requestMethod\n\n$params$code\n")
+        Log.i("OkHttp", "请求时长:\n$tookMs ms   \n\n返回的出参数据:\n$result")
         response
     }
 
