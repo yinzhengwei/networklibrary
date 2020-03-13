@@ -35,6 +35,7 @@ object OkHttpManager {
     private var retrofit: Retrofit? = null
     var headerMap = mutableMapOf<String, String>()
 
+    private var isDebug = true
     private var baseUrl = ""
     private var mSecondBaseUrl = ""
     private var cashDir: File? = null
@@ -48,6 +49,7 @@ object OkHttpManager {
 
     /**
      * 初始化
+     * @param isDebug 当前环境
      * @param baseUrl 请求服务的host，如：http://www.baidu.com/
      * @param timeout 请求服务器的超时时间
      * @param cashDir 缓存数据的地址
@@ -55,11 +57,13 @@ object OkHttpManager {
      * @param x509TrustManager ssl加密证书
      */
     fun init(
+        isDebug: Boolean,
         baseUrl: String,
         cashDir: File,
         headerMap: HashMap<String, String>,
         x509TrustManager: X509TrustManager? = null
     ) {
+        OkHttpManager.isDebug = isDebug
         OkHttpManager.baseUrl = baseUrl
         OkHttpManager.cashDir = cashDir
         OkHttpManager.headerMap = headerMap
@@ -89,7 +93,7 @@ object OkHttpManager {
                 .readTimeout(timeoutTimed, TimeUnit.SECONDS)
                 .writeTimeout(timeoutTimed, TimeUnit.SECONDS)
 
-            if (BuildConfig.DEBUG) {
+            if (isDebug) {
                 //测试地址 打印log
                 builder!!.addInterceptor(sLoggingInterceptor)
             }
