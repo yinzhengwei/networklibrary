@@ -40,7 +40,7 @@ object OkHttpManager {
     private var baseUrl = ""
     private var mSecondBaseUrl = ""
     private var cashDir: File? = null
-    private var timeoutTimed: Long = 30_000
+    private var timeoutTimed: Long = 30
 
     fun setTimeout(time: Long) {
         timeoutTimed = time
